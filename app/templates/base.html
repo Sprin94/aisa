@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Создание короткой ссылки</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f7f7f7;
+        }
+        .container {
+            text-align: center;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+        }
+        input[type="text"],
+        button {
+            margin-bottom: 10px;
+            padding: 8px;
+            width: 100%;
+            box-sizing: border-box;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+        button {
+            cursor: pointer;
+            background-color: #4caf50;
+            color: #fff;
+            border: none;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .short-link-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        .short-link {
+            flex: 4;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .copy-button {
+            flex: 2;
+            padding: 8px;
+            margin-left: 10px;
+            cursor: pointer;
+            background-color: #3498db;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+        }
+        .copy-button:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Генератор коротких ссылок</h2>
+        <div id="errorDisplay" style="color: red;"></div>
+        <input type="text" id="longlLink" placeholder="Введите ссылку">
+        <button onclick="generateShortLink()">Создать короткую ссылку</button>
+        <div class="short-link-container">
+            <input type="text" id="shortLink" class="short-link">
+            <button onclick="copyToClipboard()" class="copy-button">Копировать</button>
+        </div>
+    </div>
+
+    <script>
+        function generateShortLink() {
+            var errorDiv = document.getElementById("errorDisplay")
+                errorDiv.innerText = "";
+            var url = document.getElementById("longlLink").value
+            var shortLink = fetch(
+                '{{ host }}/api/short_url/',
+                {
+                    method: "POST",
+                    body: JSON.stringify({"url": url}),
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                }
+            ).then(response => {
+                if (response.status === 201) {
+                    return response.json();
+                } else {
+                    throw new Error('Ошибка: ' + response.status);
+                }
+            }).then(data => {
+                const  short_link = data.short_url;
+                document.getElementById("shortLink").value = short_link;
+            }).catch(error => {
+                var errorDiv = document.getElementById("errorDisplay")
+                errorDiv.innerText = "Неверный URL";
+            });
+        }
+
+        function copyToClipboard() {
+            var shortLinkInput = document.getElementById("shortLink");
+            shortLinkInput.select();
+            document.execCommand("copy");
+        }
+    </script>
+</body>
+</html>
